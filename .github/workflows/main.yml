@@ -28,11 +28,13 @@ jobs:
     - name: Compile Java code
       run: javac -d out $(find . -name "*.java")
 
-    - name: Download JUnit Platform Console Standalone JAR
+    - name: Download JUnit Jupiter JARs
       run: |
         mkdir -p libs
-        curl -L -o libs/junit-platform-console-standalone-1.8.2.jar https://repo.maven.apache.org/maven2/org/junit/platform/junit-platform-console-standalone/1.8.2/junit-platform-console-standalone-1.8.2.jar
+        curl -L -o libs/junit-jupiter-api-5.8.2.jar https://repo.maven.apache.org/maven2/org/junit/jupiter/junit-jupiter-api/5.8.2/junit-jupiter-api-5.8.2.jar
+        curl -L -o libs/junit-jupiter-engine-5.8.2.jar https://repo.maven.apache.org/maven2/org/junit/jupiter/junit-jupiter-engine/5.8.2/junit-jupiter-engine-5.8.2.jar
+        curl -L -o libs/junit-platform-commons-1.8.2.jar https://repo.maven.apache.org/maven2/org/junit/platform/junit-platform-commons/1.8.2/junit-platform-commons-1.8.2.jar
 
     - name: Run tests
       run: |
-        java -cp "out:libs/junit-platform-console-standalone-1.8.2.jar" org.junit.platform.console.ConsoleLauncher --scan-classpath
+        java -cp "out:libs/*" org.junit.platform.console.ConsoleLauncher --scan-classpath
