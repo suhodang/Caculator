@@ -1,0 +1,37 @@
+name: Java CI without Maven or JDK setup
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v2
+
+    - name: Install OpenJDK 11
+      run: sudo apt-get update && sudo apt-get install -y openjdk-11-jdk
+
+    - name: Check Java version
+      run: java -version
+
+    - name: Check javac version
+      run: javac -version
+
+    - name: Compile Java code
+      run: javac -d out $(find . -name "*.java")
+
+    - name: Download JUnit Platform Console Standalone JAR
+      run: |
+        mkdir -p libs
+        curl -L -o libs/junit-platform-console-standalone-1.8.2.jar https://repo.maven.apache.org/maven2/org/junit/platform/junit-platform-console-standalone/1.8.2/junit-platform-console-standalone-1.8.2.jar
+
+    - name: Run tests
+      run: java -cp "out:libs/junit-platform-console-standalone-1.8.2.jar" org.junit.platform.console.ConsoleLauncher --scan-classpath
