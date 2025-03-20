@@ -28,13 +28,38 @@ jobs:
     - name: Compile Java code
       run: javac -d out $(find . -name "*.java")
 
-    - name: Download JUnit Jupiter JARs
+    - name: Download JUnit Platform Console Standalone JAR
       run: |
         mkdir -p libs
-        curl -L -o libs/junit-jupiter-api-5.8.2.jar https://repo.maven.apache.org/maven2/org/junit/jupiter/junit-jupiter-api/5.8.2/junit-jupiter-api-5.8.2.jar
-        curl -L -o libs/junit-jupiter-engine-5.8.2.jar https://repo.maven.apache.org/maven2/org/junit/jupiter/junit-jupiter-engine/5.8.2/junit-jupiter-engine-5.8.2.jar
-        curl -L -o libs/junit-platform-commons-1.8.2.jar https://repo.maven.apache.org/maven2/org/junit/platform/junit-platform-commons/1.8.2/junit-platform-commons-1.8.2.jar
+        curl -L -o libs/junit-platform-console-standalone-1.8.2.jar https://repo.maven.apache.org/maven2/org/junit/platform/junit-platform-console-standalone/1.8.2/junit-platform-console-standalone-1.8.2.jar
 
     - name: Run tests
-      run: |
-        java -cp "out:libs/*" org.junit.platform.console.ConsoleLauncher --scan-classpath
+      run: java -cp "out:libs/junit-platform-console-standalone-1.8.2.jar" org.junit.platform.console.ConsoleLauncher --scan-classpath
+
+    - name: Notify Slack on Success
+      if: success()
+      id: slack-success
+      uses: slackapi/slack-github-action@v1.24.0
+      with:
+        payload: >
+          {"channel": "#github알림", "attachments": [{"color": "#36a64f", "title": "${{ github.repository }}",
+          "title_link": "https://github.com/${{ github.repository }}", "text": "GitHub Action 성공",
+          "fields": [{"title": "Repository", "value": "${{ github.repository }}", "short": true},
+          {"title": "Tag", "value": "${{ github.ref_name }}", "short": true}]}]}
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_NOTIFICATION }}
+        SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+    - name: Notify Slack on Failure
+      if: failure()
+      id: slack-failure
+      uses: slackapi/slack-github-action@v1.24.0
+      with:
+        payload: >
+          {"channel": "#github알림", "attachments": [{"color": "#ff0000", "title": "${{ github.repository }}",
+          "title_link": "https://github.com/${{ github.repository }}", "text": "GitHub Action 실패 :x:",
+          "fields": [{"title": "Repository", "value": "${{ github.repository }}", "short": true},
+          {"title": "Tag", "value": "${{ github.ref_name }}", "short": true}]}]}
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_NOTIFICATION }}
+        SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
