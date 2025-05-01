@@ -25,20 +25,22 @@ jobs:
     - name: Check javac version
       run: javac -version
 
-    - name: Compile Java code
-      run: javac -d out $(find . -name "*.java")
-
     - name: Download JUnit Platform Console Standalone JAR
       run: |
         mkdir -p libs
         curl -L -o libs/junit-platform-console-standalone-1.8.2.jar https://repo.maven.apache.org/maven2/org/junit/platform/junit-platform-console-standalone/1.8.2/junit-platform-console-standalone-1.8.2.jar
 
+    - name: Compile main Java code
+      run: javac -d out $(find ./Test-hub -name "*.java")
+
+    - name: Compile test Java code (with JUnit classpath)
+      run: javac -cp libs/junit-platform-console-standalone-1.8.2.jar -d out/test $(find ./test -name "*.java")
+
     - name: Run tests
-      run: java -cp "out:libs/junit-platform-console-standalone-1.8.2.jar" org.junit.platform.console.ConsoleLauncher --scan-classpath
+      run: java -cp "out:out/test:libs/junit-platform-console-standalone-1.8.2.jar" org.junit.platform.console.ConsoleLauncher --scan-classpath
 
     - name: Notify Slack on Success
       if: success()
-      id: slack-success
       uses: slackapi/slack-github-action@v1.24.0
       with:
         payload: >
@@ -52,7 +54,6 @@ jobs:
 
     - name: Notify Slack on Failure
       if: failure()
-      id: slack-failure
       uses: slackapi/slack-github-action@v1.24.0
       with:
         payload: >
